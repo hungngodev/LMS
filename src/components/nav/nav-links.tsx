@@ -1,0 +1,88 @@
+"use client";
+
+import { Button } from "@/components/button";
+import { Skeleton } from "@/components/skeleton";
+import { PUBLIC_ROUTES } from "@/content/public-routes";
+import { useNavigationLinks } from "@/hooks/nav/use-navigation-links";
+import { useAuth } from "@/hooks/use-auth";
+import { LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { redirect, usePathname } from "next/navigation";
+import { FC, useEffect, useState } from "react";
+
+export interface NavigationLink {
+	name: string;
+	icon: LucideIcon;
+	current?: boolean;
+	href: string;
+}
+
+export const NavLinks: FC = () => {
+	const { user, status } = useAuth();
+
+	const { navigationLinks: navigations } = useNavigationLinks(user);
+
+	const pathname = usePathname();
+	const [activeItem, setActiveItem] = useState<string | null>(null);
+	const handleButtonClick = (nav: NavigationLink) => {
+		setActiveItem(nav.href);
+	};
+	useEffect(() => {
+		// Find the matching navigation link and set it as the active item
+        const matchingLink = navigations.find((nav) => {
+            return ((pathname == '/') || (pathname?.split("/").filter((s) => s != "" )[0] === nav.name.toLowerCase())) ;
+        });
+
+		if (matchingLink) {
+			setActiveItem(matchingLink.href);
+		} else {
+			setActiveItem(null); // Reset the active item if the pathname doesn't match any links
+		}
+	}, [pathname, navigations]);
+	if (status === "unauthenticated") {
+		if (pathname && !PUBLIC_ROUTES.includes(pathname))
+			return redirect("/login");
+	}
+	return (
+		<>
+			{status === "loading" ? (
+				<div>
+					<Skeleton className="w-full h-10 my-1" />
+					<Skeleton className="w-full h-10 my-1" />
+					<Skeleton className="w-full h-10 my-1" />
+					<Skeleton className="w-full h-10 my-1" />
+				</div>
+			) : (
+				<>
+					{navigations.map((nav) => (
+						<div
+							className="w-full rounded-md py-0.5"
+							key={nav.name}
+						>
+							<Link href={nav.href} className="w-full">
+								<Button
+									variant={
+										activeItem === nav.href
+											? "selected"
+											: nav.current
+											? "default"
+											: "ghost"
+									}
+									className="w-full pl-4"
+									onClick={() => handleButtonClick(nav)}
+								>
+									<div className="w-full text-left flex items-center font-semibold">
+										<nav.icon className="h-8 w-8 py-1 pr-2" />
+										{nav.name}
+									</div>
+								</Button>
+							</Link>
+						</div>
+					))}
+				</>
+			)}
+		</>
+	);
+};
+
+//

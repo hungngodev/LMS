@@ -1,0 +1,69 @@
+name: CI Pipelines
+run-name: ${{ github.actor }} is running CI
+on:
+    pull_request:
+        branches:
+            - integration
+    push:
+        branches:
+            - integration
+env:
+    MONGODB_URI: mongodb://localhost/seamless-lms
+    PAYLOAD_SECRET: SOME_SECRET
+    PAYLOAD_CONFIG_PATH: src/payload/payload-config.ts
+    INIT_ADMIN_EMAIL: admin@seamlesstech.io
+    INIT_ADMIN_PASSWORD: SOME_PASSWORD
+    SEED_TOKEN: SOME_SECRET
+    APP_URL: http://localhost:3000
+    SES_ACCESS_KEY: SOME_ACCESS_KEY_ID
+    SES_SECRET_ACCESS_KEY: SOME_ACCESS_KEY_SECRET
+    SES_REGION: ap-southeast-1
+    S3_REGION: ap-southeast-1
+    S3_ACCESS_KEY_ID: LKIAQAAAAAAAAKJ2GZX7
+    S3_SECRET_ACCESS_KEY: yofoOCzKxWi3uqW5iyeDIXJ4xJR2eiyUvbjO5MvN
+    S3_ENDPOINT: http://s3.localhost.localstack.cloud:4566
+    S3_BUCKET: seamless-lms-dev-bucket
+jobs:
+    build:
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: "18"
+            - run: npm install -g yarn
+            - name: Cypress install
+              uses: cypress-io/github-action@v5
+              with:
+                  # Disable running of tests within install job
+                  runTests: false
+                  build: yarn build
+            - name: Save build folder
+              uses: actions/upload-artifact@v3
+              with:
+                  name: .next
+                  if-no-files-found: error
+                  path: .next
+    integration-test:
+        runs-on: ubuntu-22.04
+        needs: build
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Download the build folder
+              uses: actions/download-artifact@v3
+              with:
+                  name: .next
+                  path: .next
+            - run: docker compose up -d
+            - run: yarn install
+            - name: Start server in the background
+              run: yarn start &
+            - name: run tests
+              run: yarn cy:run
+            - uses: actions/upload-artifact@v1
+              if: always()
+              with:
+                  name: cypress-videos
+                  path: tests/cypress/videos

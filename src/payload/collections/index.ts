@@ -1,0 +1,15 @@
+export { actionConfig } from "./actions/actions-config";
+export { assignmentConfig } from "./assignments/assignments-config";
+export { assignmentsMediaConfig } from "./assignmentsMedia/assignments-media-config";
+export { coursesConfig } from "./courses/courses-config";
+export { gradesConfig } from "./grades/grades-config";
+export { gradesMediaConfig } from "./gradesMedia/grades-media-config";
+export { locationsConfig } from "./locations/locations-config";
+export { rolesConfig } from "./roles/roles-config";
+export { sessionsConfig } from "./sessions/sessions-config";
+export { sessionsRecurrenceConfig } from "./sessionsRecurrence/sessions-recurrence-config";
+export { subjectsConfig } from "./subjects/subjects-config";
+export { submissionsConfig } from "./submissions/submissions-config";
+export { submissionsMediaConfig } from "./submissionsMedia/submissions-media-config";
+export { usersConfig } from "./users/users-config";
+export { viewsConfig } from "./views/views-config";
